@@ -1,55 +1,83 @@
 import discord
+import random
+import os
+from discord.ext import commands
 
 from bot_logic import gen_pass
 from bot_logic import flip_coin
 
-# La variable intents almacena los privilegios del bot
 intents = discord.Intents.default()
-
-# Activar el privilegio de lectura de mensajes
 intents.message_content = True
-
-# Necesario para trabajar con miembros del servidor
 intents.members = True
 
-# Crear un cliente y transferirle los privilegios
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix='$', intents=intents)
 
 
-@client.event
+@bot.event
 async def on_ready():
-    print(f'Hemos iniciado sesión como {client.user}')
+    print(f'Hemos iniciado sesión como {bot.user}')
 
 
-@client.event
-async def on_message(message):
+@bot.command()
+async def Holaa(ctx):
+    await ctx.send("Holaa como estas ?")
 
-    if message.author == client.user:
-        return
 
-    if message.content.startswith('$Holaa'):
-        await message.channel.send("Holaa como estas ?")
+@bot.command()
+async def bye(ctx):
+    await ctx.send("\U0001f642")
 
-    elif message.content.startswith('$bye'):
-        await message.channel.send("\U0001f642")
 
-    elif message.content.startswith('$coin'):
-        await message.channel.send(flip_coin())
+@bot.command()
+async def coin(ctx):
+    await ctx.send(flip_coin())
 
-    elif message.content.startswith('$password'):
-        await message.channel.send("Tu contraseña " + gen_pass(10))
 
-    elif message.content.startswith('$joined'):
-        if message.mentions:
-            member = message.mentions[0]
+@bot.command()
+async def password(ctx):
+    await ctx.send("Tu contraseña " + gen_pass(10))
 
-            await message.channel.send(
-                f'{member.name} joined {discord.utils.format_dt(member.joined_at)}'
-            )
-        else:
-            await message.channel.send(
-                "Debes mencionar a una persona. Ejemplo: $joined @usuario"
-            )
 
+@bot.command()
+async def joined(ctx, member: discord.Member):
+    await ctx.send(
+        f'{member.name} joined {discord.utils.format_dt(member.joined_at)}'
+    )
+
+
+@bot.command()
+async def meme(ctx):
+    images = os.listdir('images')
+
+    img_name = random.choice(images)
+
+    with open(f'images/{img_name}', 'rb') as f:
+        picture = discord.File(f)
+
+    await ctx.send(file=picture)
     
-client.run("PON_TU_TOKEN_AQUI")
+@bot.command()
+async def animales(ctx):
+    memes = os.listdir('images/animales')
+
+    img_name = random.choice(memes)
+
+    with open(f'images/animales/{img_name}', 'rb') as f:
+        picture = discord.File(f)
+
+    await ctx.send(file=picture)
+
+@bot.command()
+async def ayuda(ctx):
+    await ctx.send(
+        "$Holaa - Saluda\n"
+        "$bye - Se despide\n"
+        "$coin - Lanza una moneda\n"
+        "$password - Genera una contraseña\n"
+        "$joined @usuario - Muestra cuándo entró una persona\n"
+        "$meme - Envía un meme aleatorio\n"
+        "$ayuda - Muestra los comandos"
+        "$animales - Envía un meme de animales\n"
+    )
+    
+bot.run("PON_TU_TOKEN_AQUI")
